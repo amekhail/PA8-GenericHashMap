@@ -1,22 +1,24 @@
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 public class MyHashMap<K,V> {
 	
+	private List<HashNode<K,V>> buckets;
 	private static int numBuckets = 8;
-	
 	
 	/**
 	 * Constructs an empty HashMap with the default initial capacity (8).
 	 */
 	public MyHashMap() {
-		
+		this.buckets = new ArrayList<>();
 	}
 	
 	/**
 	 * Removes all of the mappings from this map.
 	 */
 	public void clear() {
-		
+		this.buckets = new ArrayList<>();
 	}
 	
 	/**
@@ -96,7 +98,14 @@ public class MyHashMap<K,V> {
 	 * previously associated null with key.)
 	 */
 	public V put(K key, V val) {
-		
+		int hashIndex = hash(key);
+		if (buckets.get(hashIndex) == null) {
+			HashNode<K,V> node = new HashNode<>(key, val);
+			buckets.add(hashIndex, node);
+		} else {
+			
+		}
+		return null;
 	}
 	
 	/**
@@ -124,5 +133,4 @@ public class MyHashMap<K,V> {
 		int index = hashCode % numBuckets;
 		return Math.abs(index);
 	}
-	
 }
