@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -6,12 +7,14 @@ public class MyHashMap<K,V> {
 	
 	private List<HashNode<K,V>> buckets;
 	private static int numBuckets = 8;
+	private int size;
 	
 	/**
 	 * Constructs an empty HashMap with the default initial capacity (8).
 	 */
 	public MyHashMap() {
 		this.buckets = new ArrayList<>();
+		this.size = 0;
 	}
 	
 	/**
@@ -58,7 +61,7 @@ public class MyHashMap<K,V> {
 	 * @return true if this map contains no key-value mappings
 	 */
 	public boolean isEmpty() {
-		return true;
+		return size == 0;
 	}
 	
 	/**
@@ -66,7 +69,15 @@ public class MyHashMap<K,V> {
 	 * @return a set view of the keys contained in this map
 	 */
 	public Set<K> keySet() {
-		
+		Set<K> keySet = new HashSet<K>();
+		for (int i = 0; i < buckets.size(); i++) {
+			HashNode<K,V> temp = buckets.get(i);
+			while (temp != null) {
+				keySet.add(temp.getKey());
+				temp = temp.getNext();
+			}
+		}
+		return keySet;
 	}
 	
 	/**
@@ -102,10 +113,13 @@ public class MyHashMap<K,V> {
 		if (buckets.get(hashIndex) == null) {
 			HashNode<K,V> node = new HashNode<>(key, val);
 			buckets.add(hashIndex, node);
+			return null;
 		} else {
-			
+			HashNode<K,V> node = new HashNode<>(key, val);
+			V returnVal = this.addToEnd(hashIndex, node);
+			return returnVal;
 		}
-		return null;
+		
 	}
 	
 	/**
@@ -116,7 +130,24 @@ public class MyHashMap<K,V> {
 	 * previously associated null with key.)
 	 */
 	public V remove(K key) {
-		
+		int hashCode = hash(key);
+		HashNode<K,V> temp = buckets.get(hashCode);
+		HashNode<K,V> prev = null;
+		while (temp != null) {
+			if (temp.getKey().equals(key)) {
+				V val = temp.getValue();
+				if (prev == null) {
+					buckets.add(hashCode, temp.getNext());
+				} else {
+					prev.setNext(temp.getNext());
+				}
+				return val;
+			} else {
+				prev = temp;
+				temp = temp.getNext();
+			}
+		}
+		return null;
 	}
 	
 	/**
@@ -125,12 +156,28 @@ public class MyHashMap<K,V> {
 	 * the number of key-value mappings in this map
 	 */
 	public int size() {
-		
+		return this.size;
 	}
 	
 	private int hash(K key) {
 		int hashCode = key.hashCode();
 		int index = hashCode % numBuckets;
 		return Math.abs(index);
+	}
+
+	private V addToEnd(int bucket, HashNode<K,V> h) {
+		HashNode<K,V> temp = buckets.get(bucket);
+		V returnVal = null;
+		while (temp.getNext() != null) {
+			if (h.getKey().equals(temp.getKey())) {
+				returnVal = temp.getValue();
+				temp.setValue(h.getValue());
+				return returnVal;
+				
+			}
+			temp = temp.getNext();
+		}
+		temp.setNext(h);
+		return returnVal;
 	}
 }
