@@ -13,7 +13,7 @@ public class MyHashMap<K,V> {
 	 * Constructs an empty HashMap with the default initial capacity (8).
 	 */
 	public MyHashMap() {
-		this.buckets = new ArrayList<>();
+		initEmptyList();
 		this.size = 0;
 	}
 	
@@ -21,7 +21,8 @@ public class MyHashMap<K,V> {
 	 * Removes all of the mappings from this map.
 	 */
 	public void clear() {
-		this.buckets = new ArrayList<>();
+		initEmptyList();
+		this.size = 0;
 	}
 	
 	/**
@@ -31,7 +32,15 @@ public class MyHashMap<K,V> {
 	 * @return true if this map contains a mapping for the specified key.
 	 */
 	public boolean containsKey(K key) {
-		return true;
+		HashNode<K,V> entry = buckets.get(hash(key));
+
+		while (entry != null) {
+			if (entry.getKey().equals(key)) {
+				return true;
+			}
+			entry = entry.getNext();
+		}
+		return false;
 	}
 	
 	/**
@@ -41,7 +50,19 @@ public class MyHashMap<K,V> {
 	 * @return true if this map maps one or more keys to the specified value
 	 */
 	public boolean containsValue(V val) {
-		return true;
+		
+		for (int i = 0; i < buckets.size(); i++) {
+			HashNode<K,V> entry = buckets.get(i);
+			while (entry != null) {
+				if (entry.getValue().equals(val)) {
+					return true;
+				}
+				entry = entry.getNext();
+			}
+		}
+		
+		
+		return false;
 	}
 	
 	/**
@@ -53,6 +74,15 @@ public class MyHashMap<K,V> {
 	 * map contains no mapping for the key
 	 */
 	public V get(K key) {
+
+		HashNode<K,V> entry = buckets.get(hash(key));
+
+		while (entry != null) {
+			if (entry.getKey().equals(key)) {
+				return entry.getValue();
+			}
+			entry = entry.getNext();
+		}
 		return null;
 	}
 	
@@ -97,7 +127,23 @@ public class MyHashMap<K,V> {
 	 * </ul>
 	 */
 	public void printTable() {
-		
+		int totalConflicts = 0;
+		for (int i = 0; i < buckets.size(); i++) {
+			String currBucket = "[";
+			HashNode<K,V> entry = buckets.get(i);
+			int conflicts = 0;
+			while (entry != null) {
+				currBucket += entry.getKey() + ", ";
+				entry = entry.getNext();
+				if (entry != null) {
+					conflicts ++;
+					totalConflicts++;
+				}
+			}
+			currBucket += "]";
+			System.out.println("Index " + i + ": (" + conflicts + " conflicts), " + currBucket); 
+		}
+		System.out.println("Total # of conflicts: " + totalConflicts);
 	}
 	
 	/**
@@ -110,16 +156,31 @@ public class MyHashMap<K,V> {
 	 */
 	public V put(K key, V val) {
 		int hashIndex = hash(key);
-		if (buckets.get(hashIndex) == null) {
-			HashNode<K,V> node = new HashNode<>(key, val);
-			buckets.add(hashIndex, node);
-			return null;
-		} else {
-			HashNode<K,V> node = new HashNode<>(key, val);
-			V returnVal = this.addToEnd(hashIndex, node);
-			return returnVal;
+		HashNode<K,V> entry = new HashNode<>(key, val);
+		HashNode<K,V> existingVal = buckets.get(hashIndex);
+		if (existingVal == null) {
+			buckets.set(hashIndex, entry);
+			this.size++;
+		} else { // all nodes before the last node
+			while (existingVal.getNext() != null) {
+				if (existingVal.getKey().equals(key)) {
+					V value = existingVal.getValue();
+					existingVal.setValue(val);
+					return value;
+				}
+				existingVal = existingVal.getNext();
+			}
+			// last node
+			if (existingVal.getKey().equals(key)) {
+				V value = existingVal.getValue();
+				existingVal.setValue(val);
+				return value;
+			} else {
+				existingVal.setNext(entry);
+				this.size++;
+			}
 		}
-		
+		return null;
 	}
 	
 	/**
@@ -141,6 +202,7 @@ public class MyHashMap<K,V> {
 				} else {
 					prev.setNext(temp.getNext());
 				}
+				this.size--;
 				return val;
 			} else {
 				prev = temp;
@@ -159,25 +221,31 @@ public class MyHashMap<K,V> {
 		return this.size;
 	}
 	
+	/**
+	 * Returns the index for the hashmap which is the hashcode for the
+	 * key object modulo numBuckets (8)
+	 * @param key - key with which the hash index will be calculated from
+	 * @return
+	 * an integer which is the index specifiying which bucket this HashNode
+	 * object will be in
+	 */
 	private int hash(K key) {
 		int hashCode = key.hashCode();
 		int index = hashCode % numBuckets;
 		return Math.abs(index);
 	}
 
-	private V addToEnd(int bucket, HashNode<K,V> h) {
-		HashNode<K,V> temp = buckets.get(bucket);
-		V returnVal = null;
-		while (temp.getNext() != null) {
-			if (h.getKey().equals(temp.getKey())) {
-				returnVal = temp.getValue();
-				temp.setValue(h.getValue());
-				return returnVal;
-				
-			}
-			temp = temp.getNext();
+	/**
+	 * Inilizes the ArrayList 'buckets' to have all null values. 
+	 * Called on creation and when list is emptied
+	 */
+	private void initEmptyList() {
+		buckets = new ArrayList<>();
+
+		for (int i = 0; i < numBuckets; i++) {
+			buckets.add(null);
 		}
-		temp.setNext(h);
-		return returnVal;
 	}
+
+
 }
