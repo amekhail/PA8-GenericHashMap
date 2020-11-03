@@ -5,6 +5,13 @@ import java.util.Set;
 
 public class MyHashMap<K,V> {
 	
+	/*
+	*
+	* because of the issue with using a generic array, an ArrayList of 
+	* HashNode objects will be used. The HashNode objects will link to other
+	* HashNode objects in the bucket
+	*
+	*/	
 	private List<HashNode<K,V>> buckets;
 	private static int numBuckets = 8;
 	private int size;
@@ -148,8 +155,10 @@ public class MyHashMap<K,V> {
 	
 	/**
 	 * Associates the specified value with the specified key in this map.
-	 * @param key - key with which the specified value is to be associated
-	 * @param val - value to be associated with the specified key
+	 * @param key 
+	 * 				- key with which the specified value is to be associated
+	 * @param val 
+	 * 				- value to be associated with the specified key
 	 * @return the previous value associated with key, or null if there was no
 	 * mapping for key. (A null return can also indicate that the map 
 	 * previously associated null with key.)
@@ -185,7 +194,8 @@ public class MyHashMap<K,V> {
 	
 	/**
 	 * Removes the mapping for the specified key from this map if present.
-	 * @param key - whose mapping is to be removed from the map
+	 * @param key 
+	 * 				- whose mapping is to be removed from the map
 	 * @return the previous value associated with key, or null if there was no 
 	 * mapping for key. (A null return can also indicate that the map 
 	 * previously associated null with key.)
@@ -198,7 +208,7 @@ public class MyHashMap<K,V> {
 			if (temp.getKey().equals(key)) {
 				V val = temp.getValue();
 				if (prev == null) {
-					buckets.add(hashCode, temp.getNext());
+					buckets.set(hashCode, temp.getNext());
 				} else {
 					prev.setNext(temp.getNext());
 				}
@@ -224,7 +234,8 @@ public class MyHashMap<K,V> {
 	/**
 	 * Returns the index for the hashmap which is the hashcode for the
 	 * key object modulo numBuckets (8)
-	 * @param key - key with which the hash index will be calculated from
+	 * @param key 
+	 * 				- key with which the hash index will be calculated from
 	 * @return
 	 * an integer which is the index specifiying which bucket this HashNode
 	 * object will be in
@@ -241,7 +252,6 @@ public class MyHashMap<K,V> {
 	 */
 	private void initEmptyList() {
 		buckets = new ArrayList<>();
-
 		for (int i = 0; i < numBuckets; i++) {
 			buckets.add(null);
 		}
